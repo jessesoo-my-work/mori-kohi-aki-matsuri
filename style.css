@@ -999,3 +999,91 @@ body.ak-after-hero .ak-nav-inner > .fnb-btn {
 
 /* ── Remove returned hero leaf v21 ─────────────────────────────── */
 .ak-asset--drift { display: none !important; }
+
+
+/* ── Header brand + sticky CTA handoff v22 ─────────────────────── */
+/* Keep the nav geometry stable while the brand is visually absent. */
+.ak-nav-brand {
+  grid-column: 1;
+  justify-self: start;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-7px);
+  pointer-events: none;
+  transition:
+    opacity 0.34s ease,
+    transform 0.34s ease,
+    visibility 0s linear 0.34s;
+}
+body.ak-after-hero .ak-nav-brand {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+  transition:
+    opacity 0.34s ease,
+    transform 0.34s ease,
+    visibility 0s linear 0s;
+}
+
+/* Wordmark-only crop sized for the sticky header, without the tree marks. */
+.ak-nav-brand .ak-logo-crop {
+  width: 158px;
+  height: 50px;
+  background: transparent;
+}
+.ak-nav-brand .ak-logo-mark {
+  width: 190px;
+  height: 190px;
+  left: -15px;
+  top: -91px;
+}
+
+/* Never remove the fixed CTA from layout with display:none; hiding via
+   opacity/visibility lets the transition run in both directions. */
+.ak-sticky {
+  display: block !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transform: translateY(16px) !important;
+  pointer-events: none !important;
+  transition:
+    opacity 0.34s ease,
+    transform 0.34s ease,
+    visibility 0s linear 0.34s !important;
+}
+body.ak-after-hero .ak-sticky {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(0) !important;
+  pointer-events: auto !important;
+  transition:
+    opacity 0.34s ease,
+    transform 0.34s ease,
+    visibility 0s linear 0s !important;
+}
+
+@media (max-width: 900px) {
+  .ak-nav-inner {
+    display: flex !important;
+    justify-content: space-between !important;
+  }
+  .ak-nav-brand .ak-logo-crop {
+    width: 136px;
+    height: 44px;
+  }
+  .ak-nav-brand .ak-logo-mark {
+    width: 164px;
+    height: 164px;
+    left: -13px;
+    top: -79px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ak-nav-brand,
+  .ak-sticky {
+    transition: none !important;
+  }
+}
