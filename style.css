@@ -1087,3 +1087,62 @@ body.ak-after-hero .ak-sticky {
     transition: none !important;
   }
 }
+
+
+/* ── Header logo handoff v23 ───────────────────────────────────── */
+/* Explicitly keep the header wordmark invisible during the hero. */
+.ak-nav .ak-nav-brand {
+  display: flex !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transform: translateY(-5px) !important;
+  pointer-events: none !important;
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s linear 0.3s !important;
+}
+body.ak-after-hero .ak-nav .ak-nav-brand {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(0) !important;
+  pointer-events: auto !important;
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s linear 0s !important;
+}
+
+/* Compact wordmark-only lockup appropriate for a sticky header. */
+.ak-nav .ak-nav-brand .ak-logo-crop {
+  width: 122px !important;
+  height: 36px !important;
+  overflow: hidden !important;
+  background: transparent !important;
+}
+.ak-nav .ak-nav-brand .ak-logo-mark {
+  width: 147px !important;
+  height: 147px !important;
+  max-width: none !important;
+  left: -12px !important;
+  top: -70px !important;
+}
+
+/* Match the persistent CTA handoff to the header logo. */
+.ak-sticky {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transform: translateY(12px) !important;
+  pointer-events: none !important;
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s linear 0.3s !important;
+}
+body.ak-after-hero .ak-sticky {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(0) !important;
+  pointer-events: auto !important;
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s linear 0s !important;
+}
+
+@media (max-width: 900px) {
+  .ak-nav .ak-nav-brand .ak-logo-crop { width: 108px !important; height: 32px !important; }
+  .ak-nav .ak-nav-brand .ak-logo-mark { width: 130px !important; height: 130px !important; left: -10px !important; top: -62px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ak-nav .ak-nav-brand, .ak-sticky { transition: none !important; }
+}
