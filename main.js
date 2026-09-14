@@ -102,7 +102,7 @@
     var menu = document.getElementById("ak-mobile-menu");
     if (!burger || !menu) return;
     var setMenu = function (open) {
-      menu.style.display = open ? "block" : "none";
+      menu.style.display = open ? "grid" : "none";
       burger.classList.toggle("ak-burger--open", open);
       burger.setAttribute("aria-expanded", String(open));
       burger.setAttribute("aria-label", open ? "Close menu" : "Open menu");

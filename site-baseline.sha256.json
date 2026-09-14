@@ -17,12 +17,12 @@
   "assets/leaf-single.webp": "8c45f5bbec68f116af5d499cce125e3fe42a174b434050113c618f4b06d856c7",
   "assets/leaf-watercolor.webp": "6e5e4d9bc0407ac57a134a871247d78f10af4b321b310c5026e537874608f0d9",
   "assets/pinecone.webp": "5f78aee2692e066e270ea81e537afd8190d8df262371cfdb74de0aed9513185b",
-  "index.html": "be74d1c582e7e34d6ed7f9abf1b3cd2cf0b2a5b91c79f74b42e109de59d12fec",
-  "main.js": "38f0ae77a2ecbc232b4bf02d8878ab452396f919b80d41e475665b8a38410e41",
+  "index.html": "79617d408f0fd21ef8171fc1a1190420ebe4d52585db8b21b5ff4785aa67ed59",
+  "main.js": "a014bc03647241aa1fa9ebfe5c58fe0ee85a77b50e9fe5aee3b034811d9446fe",
   "motion.js": "2e6046ab9c26b75eafd94c4e1fb00315bc8835024f14d696e14262d35f8e218d",
-  "package.json": "51d9ef9646604e62fabc6c20e5d856eb386adfbda4463f4b6401e9dcebcec517",
+  "package.json": "2d2e799f6693049a411c7557f52208eabcef73e73c483262a0baaf1b5f50c275",
   "scripts/verify-baseline.mjs": "73eb8b5538cb848f680ca29fed327555bd7d06bd98b5155206803ee7c305455b",
   "server.mjs": "b50cc40d85dacf19fbd70fd75fbeb2aafee035f4d56380075fc66a1f2c96a661",
-  "style.css": "c8389000b672538c15ed6af073248107bb366002ced0db309e8caec31e118ebd",
+  "style.css": "4fa3a3fdb89631686b604c69fbd29bd61e6e05798b917de2b7170179bf991a09",
   "vite.config.js": "bd336d92e5380fe83f620a8a842565725cc47eb5df9d564227b0c06f4f761fa7"
 }
