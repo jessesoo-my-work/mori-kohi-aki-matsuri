@@ -1,0 +1,1001 @@
+/* ── Base (normally provided by the app shell) ─────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: #ffffff; }
+img { max-width: 100%; }
+[id] { scroll-margin-top: 84px; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+.theme-aki-gathering {
+  --ag-paper: #ffffff;   /* white base variant */
+  --ag-kraft: #e4cfae;   /* 枯色 kare-iro */
+  --ag-panel: #f7f4ee;
+  --ag-ink: #2a1c14;     /* 黒橡 kurotsurubami */
+  --ag-mute: #74594a;
+  --ag-kaki: #e0682a;    /* 柿色 persimmon */
+  --ag-momiji: #b3312a;  /* 紅葉 maple red */
+  --ag-icho: #e3b325;    /* 銀杏 ginkgo yellow */
+  --ag-kuchiba: #b78d4b; /* 朽葉 fallen-leaf ochre */
+  --ag-kuri: #5a3423;    /* 栗皮 chestnut */
+  --ag-night: #1d1f2f;   /* 藍鉄 indigo night */
+  --ag-lantern: #f2b65a;
+  --ag-line: #ded8cf;
+  --ag-font-jp: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+  --ag-font-brush: 'Yuji Syuku', 'Hiragino Mincho ProN', serif;
+
+  --rd-bg: #ffffff;
+  --rd-text: #2a1c14;
+  --rd-accent: #b3312a;
+  --rd-font-display: 'Instrument Serif', 'Times New Roman', serif;
+  --rd-font-body: 'Instrument Sans', system-ui, sans-serif;
+  --rd-radius: 4px;
+  --rd-shadow: 0 18px 44px rgba(42, 28, 20, .18);
+
+  --rd-btn-radius: 3px;
+  --rd-btn-case: uppercase;
+  --rd-btn-tracking: .12em;
+  --rd-btn-text: #ffffff;
+}
+
+/* ── AI Demo F&B — shared component base ─────────────────────────────
+   Consumed by app/components/demo/templates/fnb/*.vue.
+   Each template root carries a .theme-* class supplying --rd-* palette
+   tokens; these classes provide structure, 44px targets (WCAG 2.5.8)
+   and visible focus states only — never colors of their own. */
+
+.fnb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  min-height: 44px;
+  padding: .7rem 1.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--rd-btn-radius, 999px);
+  font-family: inherit;
+  font-size: .95rem;
+  font-weight: 600;
+  line-height: 1.1;
+  text-transform: var(--rd-btn-case, none);
+  letter-spacing: var(--rd-btn-tracking, normal);
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease, border-color .2s ease, color .2s ease;
+}
+.fnb-btn:hover { transform: translateY(-1px); }
+.fnb-btn:active { transform: translateY(0); }
+.fnb-btn:focus-visible { outline: 2px solid var(--rd-accent); outline-offset: 2px; }
+.fnb-btn--primary { background: var(--rd-accent); color: var(--rd-btn-text, #fff); }
+.fnb-btn--primary:hover { box-shadow: var(--rd-shadow); }
+.fnb-btn--ghost { background: transparent; border-color: currentColor; color: inherit; }
+.fnb-btn--sm { padding: .5rem 1.1rem; font-size: .875rem; }
+
+.fnb-nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: inherit;
+  font-size: .95rem;
+  text-decoration: none;
+  opacity: .85;
+  transition: opacity .2s ease;
+}
+.fnb-nav-link:hover { opacity: 1; }
+.fnb-nav-link:focus-visible { outline: 2px solid var(--rd-accent); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fnb-btn, .fnb-nav-link { transition: none; }
+  .fnb-btn:hover { transform: none; }
+}
+
+/* ── Base ─────────────────────────────────────────────────────────── */
+.ak-root {
+  /* One content band for every section. Wrappers that carry the gutter padding
+     themselves add it to the max-width, or their content box comes out narrower
+     than the sections that put the padding on the section — which is exactly how
+     the nav, gifts and voices drifted 48px narrow. */
+  --ak-band: 1180px;
+  --ak-gutter: 1.5rem;
+  font-family: var(--rd-font-body, 'Instrument Sans', system-ui, sans-serif);
+  color: var(--ag-ink, #2a1c14);
+  background: var(--ag-paper, #f3e9d8);
+  overflow-x: clip;
+  position: relative;
+}
+.ak-root a:focus-visible,
+.ak-root button:focus-visible { outline: 2px solid var(--rd-accent, #b3312a); outline-offset: 3px; border-radius: 6px; }
+/* Paper grain: one tiny noise tile, fixed so it composites once and never repaints
+   on scroll. Sits above the nav and sticky bar too, or those read as cleaner bands
+   than the page they float over. */
+.ak-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0.045;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+.ak-root h2 {
+  font-family: var(--rd-font-display, 'Instrument Serif', Georgia, serif);
+  font-weight: 400;
+  font-size: clamp(2.3rem, 4.6vw, 3.9rem);
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+  margin: 0;
+  text-wrap: balance;
+}
+.ak-root h2 em { font-style: italic; color: var(--ag-kaki, #e0682a); }
+.ak-jp { font-family: var(--ag-font-jp, 'Shippori Mincho', 'Hiragino Mincho ProN', serif); font-weight: 500; }
+.ak-tate {
+  font-family: var(--ag-font-brush, 'Yuji Syuku', 'Hiragino Mincho ProN', serif);
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+.ak-label {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin: 0 0 0.9rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  color: var(--ag-mute, #74594a);
+}
+.ak-label::before { content: ''; width: 26px; height: 1px; background: var(--ag-momiji, #b3312a); align-self: center; }
+.ak-label .ak-jp { color: var(--ag-momiji, #b3312a); font-size: 0.86rem; letter-spacing: 0.12em; }
+.ak-asset { position: absolute; pointer-events: none; user-select: none; height: auto; filter: drop-shadow(0 14px 18px rgba(42, 28, 20, 0.22)); }
+.ak-hanko {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  width: 2rem;
+  height: 3.1rem;
+  border: 2px solid var(--ag-momiji, #b3312a);
+  color: var(--ag-momiji, #b3312a);
+  font-family: var(--ag-font-jp, 'Shippori Mincho', serif);
+  font-weight: 700;
+  font-size: 1.05rem;
+  line-height: 1;
+  letter-spacing: 0.1em;
+}
+.ak-btn-arrow { display: inline-block; transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
+.fnb-btn:hover .ak-btn-arrow { transform: translateX(4px); }
+.ak-root .wa-btn.primary {
+  background: var(--ag-momiji, #b3312a);
+  color: var(--ag-paper, #f3e9d8);
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.82rem;
+  font-weight: 600;
+  box-shadow: none;
+}
+.ak-root .wa-btn.primary:hover { background: var(--ag-kuri, #5a3423); box-shadow: 0 10px 24px rgba(42, 28, 20, 0.22); }
+.ak-root .fnb-btn--primary { background: var(--ag-momiji, #b3312a); color: var(--ag-paper, #f3e9d8); }
+.ak-root .fnb-btn--ghost { border-color: var(--ag-ink, #2a1c14); color: var(--ag-ink, #2a1c14); }
+
+/* ── Nav ──────────────────────────────────────────────────────────── */
+/* Opaque paper from the start. The drifting leaf and the hero photo both pass
+   under this bar, and a transparent nav left the links unreadable against them;
+   at rest the bar is the same colour as the page, so it still reads as no bar. */
+.ak-nav { position: sticky; top: 0; z-index: 20; background: var(--ag-paper, #f3e9d8); border-bottom: 1px solid transparent; transition: border-color 0.35s ease, box-shadow 0.35s ease; }
+.ak-nav.ak-solid { border-bottom-color: var(--ag-line, #cdb894); box-shadow: 0 10px 26px rgba(42, 28, 20, 0.07); }
+.ak-nav-inner { max-width: calc(var(--ak-band) + var(--ak-gutter) * 2); margin: 0 auto; padding: 0.9rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; }
+.ak-logo { display: flex; align-items: center; gap: 0.65rem; color: inherit; text-decoration: none; min-width: 0; }
+.ak-logo-mark { display: block; width: 92px; height: 52px; object-fit: cover; object-position: 50% 50%; mix-blend-mode: multiply; }
+.ak-logo-event { padding-left: 0.65rem; border-left: 1px solid var(--ag-line, #d8d0c4); font-family: var(--ag-font-jp, 'Shippori Mincho', serif); font-size: 0.72rem; line-height: 1; letter-spacing: 0.2em; color: var(--ag-momiji, #b3312a); white-space: nowrap; }
+.ak-nav-links { display: flex; gap: 1.5rem; }
+.ak-navlink { font-size: 0.86rem; }
+.ak-burger { display: none; }
+.ak-mobile-menu { display: none; }
+
+/* ── Hero: poster layout, kanji down the left, photo bleeding right ── */
+.ak-hero { position: relative; padding: clamp(2rem, 5vw, 4rem) 1.5rem clamp(3rem, 6vw, 5rem); }
+.ak-hero-tate { position: absolute; left: 0; top: 1.5rem; font-size: clamp(3.4rem, 8.5vw, 8.5rem); color: var(--ag-kaki, #e0682a); opacity: 0.92; z-index: 0; }
+.ak-hero-grid {
+  position: relative;
+  z-index: 1;
+  max-width: var(--ak-band);
+  margin: 0 auto;
+  padding-left: clamp(3rem, 9vw, 9rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: start;
+}
+.ak-hero-copy { position: relative; padding-top: clamp(2rem, 6vw, 6rem); }
+.ak-hero-kicker { margin: 0 0 1.2rem; display: flex; flex-wrap: wrap; gap: 0.8rem; font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ag-mute, #74594a); }
+.ak-hero-kicker .ak-jp { text-transform: none; letter-spacing: 0.22em; color: var(--ag-momiji, #b3312a); }
+.ak-h1 {
+  font-family: var(--rd-font-display, 'Instrument Serif', serif);
+  font-weight: 400;
+  font-size: clamp(3.6rem, 11vw, 8.4rem);
+  line-height: 0.9;
+  letter-spacing: -0.025em;
+  margin: 0 0 1.4rem;
+  text-wrap: balance;
+}
+.ak-wmask { display: inline-block; overflow: hidden; vertical-align: bottom; padding: 0 0.04em 0.1em 0; }
+.ak-wmask--alt { font-style: italic; color: var(--ag-momiji, #b3312a); }
+.ak-word { display: inline-block; will-change: transform; }
+.ak-hero-tagline { margin: 0 0 1rem; font-family: var(--rd-font-display, 'Instrument Serif', serif); font-size: clamp(1.4rem, 2.4vw, 1.9rem); display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3rem 1rem; }
+.ak-hero-tagline em { font-style: italic; }
+.ak-hero-tagline .ak-jp { font-size: 0.95rem; letter-spacing: 0.22em; color: var(--ag-mute, #74594a); }
+.ak-hero-sub { max-width: 42ch; margin: 0 0 1.8rem; line-height: 1.7; color: var(--ag-mute, #74594a); }
+.ak-hero-cta { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.ak-asset--drift { width: clamp(70px, 8vw, 110px); right: -2%; top: -1rem; rotate: 22deg; animation: ak-drift 12s ease-in-out infinite; }
+@keyframes ak-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(-10px, 16px, 0) rotate(-9deg); }
+}
+.ak-hero-visual { position: relative; margin-right: clamp(-6rem, -8vw, -2rem); }
+.ak-hero-photo { position: relative; isolation: isolate; margin: 0; aspect-ratio: 4 / 5; z-index: 1; }
+.ak-hero-photo::after { content: ''; position: absolute; inset: 0; translate: 16px 16px; border: 1px solid var(--ag-kuchiba, #b78d4b); z-index: -1; }
+.ak-hero-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ak-asset--hero-leaf { width: clamp(150px, 20vw, 260px); left: -14%; bottom: 10%; rotate: -18deg; z-index: 2; }
+.ak-ticket {
+  position: absolute;
+  left: clamp(-3rem, -5vw, -1rem);
+  bottom: -2.2rem;
+  z-index: 3;
+  width: min(300px, 78%);
+  background: var(--ag-kraft, #e4cfae);
+  color: var(--ag-ink, #2a1c14);
+  padding: 1rem 1.1rem 1rem 1.3rem;
+  rotate: 0deg;
+  border-left: 2px dashed rgba(42, 28, 20, 0.4);
+  box-shadow: var(--rd-shadow, 0 18px 44px rgba(42, 28, 20, 0.18));
+}
+.ak-ticket-label { display: flex; gap: 0.5rem; font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ag-mute, #74594a); }
+.ak-ticket-label .ak-jp { text-transform: none; letter-spacing: 0.1em; }
+.ak-ticket-main { display: block; font-family: var(--rd-font-display, 'Instrument Serif', serif); font-weight: 400; font-size: clamp(1.7rem, 2.6vw, 2.2rem); line-height: 1.05; margin: 0.35rem 3rem 0.55rem 0; }
+.ak-ticket-list { list-style: none; margin: 0; padding: 0.55rem 0 0; border-top: 1px solid rgba(42, 28, 20, 0.22); display: grid; gap: 0.15rem; font-size: 0.82rem; font-weight: 500; }
+.ak-ticket .ak-hanko { position: absolute; right: 0.8rem; top: 0.8rem; rotate: 0deg; }
+
+/* ── Programme: a stamped timetable sheet with taped snapshots ─────── */
+.ak-programme { position: relative; padding: clamp(4rem, 8vw, 7rem) 1.5rem clamp(3rem, 6vw, 5rem); }
+.ak-programme-grid { max-width: var(--ak-band); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr); gap: clamp(2rem, 6vw, 6rem); align-items: start; }
+.ak-programme-head { align-self: start; }
+.ak-kanji { display: block; font-family: var(--ag-font-brush, 'Yuji Syuku', serif); font-size: clamp(5rem, 11vw, 10rem); line-height: 0.9; color: var(--ag-kaki, #e0682a); margin: 0 0 0.4rem; }
+.ak-programme-head p { margin: 0.9rem 0 0; max-width: 30ch; color: var(--ag-mute, #74594a); line-height: 1.65; }
+.ak-sheet { list-style: none; margin: 0; padding: 0; border-top: 1px dashed var(--ag-line, #cdb894); }
+.ak-row { display: grid; grid-template-columns: 3.4rem minmax(0, 1fr) 8.5rem 150px; gap: 1.2rem; align-items: center; padding: 1.4rem 0; border-bottom: 1px dashed var(--ag-line, #cdb894); }
+.ak-row-num { font-family: var(--rd-font-display, 'Instrument Serif', serif); font-style: italic; font-size: 2.2rem; line-height: 1; color: var(--ag-kaki, #e0682a); }
+.ak-row-body { font-size: 0.95rem; }
+.ak-row-body h3 { margin: 0 0 0.3rem; font-family: var(--rd-font-display, 'Instrument Serif', serif); font-weight: 400; font-size: 1.55rem; line-height: 1.1; }
+.ak-row-jp { display: inline-block; margin-left: 0.55rem; width: auto; font-size: 0.82rem; line-height: 1; color: var(--ag-momiji, #b3312a); letter-spacing: 0.08em; white-space: nowrap; vertical-align: 0.08em; }
+.ak-row-body p { margin: 0; color: var(--ag-mute, #74594a); line-height: 1.55; font-size: 0.95rem; }
+.ak-row-when { display: grid; gap: 0.2rem; text-align: right; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+.ak-row-when small { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--ag-mute, #74594a); font-size: 0.78rem; }
+.ak-snap { position: relative; margin: 0; width: 150px; aspect-ratio: 4 / 3; padding: 6px 6px 14px; background: #fff8ec; box-shadow: 0 10px 22px rgba(42, 28, 20, 0.12); rotate: 0deg; justify-self: end; }
+.ak-row:nth-child(even) .ak-snap { rotate: 0deg; }
+.ak-row:nth-child(3n) .ak-snap { rotate: 0deg; translate: 0 0; }
+.ak-snap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ak-tape { position: absolute; top: -9px; left: 50%; width: 62px; height: 18px; translate: -50% 0; rotate: 0deg; background: rgba(227, 179, 37, 0.42); }
+.ak-asset--sheet { width: clamp(160px, 20vw, 280px); left: -3%; bottom: 9%; rotate: -8deg; }
+
+/* ── Odori night: indigo, harvest moon, photo off the left edge ────── */
+.ak-night { position: relative; overflow: hidden; margin-top: clamp(2rem, 5vw, 4rem); padding: clamp(4rem, 8vw, 7rem) 1.5rem; background: var(--ag-night, #1d1f2f); color: var(--ag-paper, #f3e9d8); }
+.ak-moon {
+  position: absolute;
+  top: -12%;
+  right: -4%;
+  width: clamp(260px, 34vw, 520px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 42% 38%, #fbe7b4 0%, #f3cd82 38%, #e6b160 62%, rgba(230, 177, 96, 0) 63%);
+  box-shadow: 0 0 140px 50px rgba(242, 182, 90, 0.18);
+  opacity: 0.9;
+}
+.ak-night-tate { position: absolute; right: clamp(0.5rem, 3vw, 3rem); bottom: 2rem; font-size: clamp(2.6rem, 5vw, 4.6rem); color: var(--ag-lantern, #f2b65a); opacity: 0.55; }
+.ak-night-grid { position: relative; max-width: var(--ak-band); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr); gap: clamp(2rem, 5vw, 4.5rem); align-items: center; }
+.ak-night-photo { position: relative; margin: 0; width: 100%; max-width: 520px; justify-self: start; aspect-ratio: 4 / 3; }
+.ak-night-photo::before { content: ''; position: absolute; inset: 0; translate: -14px 14px; background: var(--ag-kuri, #5a3423); }
+.ak-night-img { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: cover; display: block; }
+.ak-night-photo figcaption { position: absolute; z-index: 2; right: -1rem; top: 1.5rem; writing-mode: vertical-rl; font-family: var(--rd-font-display, 'Instrument Serif', serif); font-style: italic; font-size: 1.1rem; letter-spacing: 0.12em; background: var(--ag-lantern, #f2b65a); color: var(--ag-ink, #2a1c14); padding: 0.8rem 0.35rem; }
+.ak-night-photo figcaption .ak-jp { font-style: normal; }
+.ak-label--night { color: color-mix(in srgb, var(--ag-paper, #f3e9d8) 70%, transparent); }
+.ak-label--night::before { background: var(--ag-lantern, #f2b65a); }
+.ak-label--night .ak-jp { color: var(--ag-lantern, #f2b65a); }
+.ak-night h2 { color: var(--ag-paper, #f3e9d8); }
+.ak-night h2 em { color: var(--ag-lantern, #f2b65a); }
+.ak-night-body { margin: 1.2rem 0 1.4rem; max-width: 48ch; line-height: 1.75; color: color-mix(in srgb, var(--ag-paper, #f3e9d8) 78%, transparent); }
+.ak-night-list { margin: 0; font-size: 1rem; letter-spacing: 0.1em; color: var(--ag-lantern, #f2b65a); }
+
+/* ── Gifts: two kraft coupons with a perforated stub ───────────────── */
+.ak-gifts { position: relative; max-width: calc(var(--ak-band) + var(--ak-gutter) * 2); margin: 0 auto; padding: clamp(4rem, 8vw, 7rem) 1.5rem; }
+.ak-gifts-head { position: relative; display: flex; align-items: flex-start; gap: 1.5rem; max-width: 720px; margin-bottom: 2.6rem; }
+.ak-gifts-head h2 em { display: block; font-size: 0.62em; margin-top: 0.25em; }
+.ak-stamp { flex: none; margin-top: 0.4rem; padding: 0.3rem 0.55rem 0.2rem; font-family: var(--ag-font-brush, 'Yuji Syuku', serif); font-size: 2.2rem; line-height: 1; color: var(--ag-momiji, #b3312a); border: 3px double var(--ag-momiji, #b3312a); rotate: 0deg; opacity: 0.9; }
+.ak-coupons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem; align-items: start; }
+.ak-coupon { display: grid; grid-template-columns: 150px minmax(0, 1fr); background: var(--ag-kraft, #e4cfae); box-shadow: 0 14px 34px rgba(42, 28, 20, 0.12); rotate: 0deg; }
+.ak-coupon:nth-child(even) { rotate: 0deg; translate: 0 0; }
+.ak-coupon-stub { position: relative; border-right: 2px dashed rgba(42, 28, 20, 0.35); }
+.ak-coupon-stub img { width: 100%; height: 100%; min-height: 170px; object-fit: cover; display: block; }
+.ak-coupon-price { position: absolute; left: 0.6rem; bottom: 0.6rem; padding: 0.3rem 0.55rem; background: var(--ag-momiji, #b3312a); color: var(--ag-paper, #f3e9d8); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
+.ak-coupon-body { padding: 1.2rem 1.3rem 1.2rem 1.4rem; display: grid; gap: 0.35rem; align-content: start; }
+.ak-coupon-no { font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ag-mute, #74594a); }
+.ak-coupon-body h3 { margin: 0; font-family: var(--rd-font-display, 'Instrument Serif', serif); font-weight: 400; font-size: 1.6rem; line-height: 1.08; }
+.ak-coupon-body p { margin: 0; color: var(--ag-mute, #74594a); line-height: 1.55; font-size: 0.95rem; }
+.ak-coupon-body small { margin-top: 0.2rem; font-family: var(--ag-font-jp, 'Shippori Mincho', serif); font-size: 0.8rem; letter-spacing: 0.06em; color: var(--ag-momiji, #b3312a); }
+.ak-asset--cone { width: clamp(90px, 10vw, 150px); right: 2%; top: 1rem; rotate: -12deg; }
+
+/* ── Hosts: one ruled strip, no cards ──────────────────────────────── */
+.ak-hosts { padding: 0 1.5rem clamp(3rem, 6vw, 5rem); }
+.ak-hosts-inner { max-width: var(--ak-band); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; align-items: center; padding: 1.6rem 0; border-top: 1px solid var(--ag-ink, #2a1c14); border-bottom: 1px dashed var(--ag-line, #cdb894); }
+.ak-hosts-kanji { font-family: var(--ag-font-brush, 'Yuji Syuku', serif); font-size: clamp(2.6rem, 5vw, 4rem); line-height: 1; color: var(--ag-kaki, #e0682a); }
+.ak-hosts .ak-label { margin-bottom: 0.5rem; }
+.ak-hosts-line { margin: 0; display: flex; flex-wrap: wrap; gap: 0.5rem 2rem; line-height: 1.5; }
+.ak-host strong { margin-right: 0.4rem; font-family: var(--rd-font-display, 'Instrument Serif', serif); font-weight: 400; font-size: 1.35rem; }
+.ak-host em { font-style: italic; color: var(--ag-momiji, #b3312a); }
+.ak-host small { color: var(--ag-mute, #74594a); }
+
+/* ── Voices: editorial pull-quotes, staggered on a 12-col grid ─────── */
+.ak-voices { position: relative; max-width: calc(var(--ak-band) + var(--ak-gutter) * 2); margin: 0 auto; padding: clamp(3rem, 6vw, 5rem) 1.5rem clamp(4rem, 8vw, 7rem); }
+.ak-bigquote { position: absolute; left: var(--ak-gutter); top: -1rem; font-family: var(--rd-font-display, 'Instrument Serif', serif); font-size: clamp(10rem, 22vw, 20rem); line-height: 1; color: var(--ag-kuchiba, #b78d4b); opacity: 0.35; pointer-events: none; }
+.ak-voices-label { position: relative; margin-left: calc((100% - 11 * 2rem) / 12 + 2rem); }
+.ak-voices-grid { position: relative; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 1.5rem 2rem; }
+.ak-voice { margin: 0; }
+.ak-voice p { margin: 0 0 0.8rem; font-family: var(--rd-font-display, 'Instrument Serif', serif); line-height: 1.25; text-wrap: pretty; }
+.ak-voice cite { font-style: normal; font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ag-momiji, #b3312a); }
+.ak-voice cite::before { content: '— '; }
+.ak-voice--0 { grid-column: 2 / span 7; }
+.ak-voice--0 p { font-size: clamp(1.7rem, 3vw, 2.6rem); font-style: italic; }
+.ak-voice--1 { grid-column: 9 / span 4; padding-top: 5rem; }
+.ak-voice--1 p { font-size: 1.25rem; }
+.ak-voice--2 { grid-column: 4 / span 6; padding-top: 1.5rem; }
+.ak-voice--2 p { font-size: 1.45rem; }
+.ak-asset--single { width: clamp(90px, 11vw, 160px); right: 4%; bottom: 0; rotate: 28deg; }
+
+/* ── Visit: ruled facts, no cards ──────────────────────────────────── */
+.ak-visit { padding: 0 1.5rem clamp(4rem, 8vw, 7rem); }
+.ak-visit-grid { max-width: var(--ak-band); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(2rem, 5vw, 4.5rem); align-items: start; }
+.ak-visit-copy > p:not(.ak-label) { margin: 1rem 0 1.4rem; max-width: 46ch; color: var(--ag-mute, #74594a); line-height: 1.7; }
+.ak-visit-cta { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.8rem; }
+.ak-facts { margin: 0; display: grid; }
+.ak-fact { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr); gap: 1rem; padding: 1rem 0; border-top: 1px dashed var(--ag-line, #cdb894); }
+.ak-fact:last-child { border-bottom: 1px solid var(--ag-ink, #2a1c14); }
+.ak-fact dt { display: grid; gap: 0.1rem; font-size: 0.74rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; }
+.ak-fact dt .ak-jp { text-transform: none; letter-spacing: 0.1em; font-weight: 500; color: var(--ag-momiji, #b3312a); }
+.ak-fact dd { margin: 0; display: grid; gap: 0.2rem; }
+.ak-fact dd strong { font-family: var(--rd-font-display, 'Instrument Serif', serif); font-weight: 400; font-size: 1.2rem; }
+.ak-fact dd span, .ak-fact dd a { color: var(--ag-mute, #74594a); }
+.ak-visit-map { position: relative; isolation: isolate; }
+.ak-visit-map::after { content: ''; position: absolute; inset: 0; translate: 14px 14px; border: 1px solid var(--ag-kuchiba, #b78d4b); z-index: -1; pointer-events: none; }
+
+/* ── Footer + sticky RSVP ──────────────────────────────────────────── */
+.ak-footer { border-top: 1px solid var(--ag-ink, #2a1c14); padding: 2.2rem 1.5rem 7rem; }
+.ak-footer-inner { max-width: var(--ak-band); margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 1.2rem; flex-wrap: wrap; }
+.ak-footer-brand { display: flex; align-items: center; gap: 0.9rem; }
+.ak-footer-word { font-family: var(--rd-font-display, 'Instrument Serif', serif); font-size: 1.6rem; }
+.ak-hanko--sm { width: 1.7rem; height: 2.6rem; font-size: 0.9rem; rotate: 0deg; }
+.ak-footer p { margin: 0; display: flex; gap: 0.7rem; color: var(--ag-mute, #74594a); }
+.ak-footer a { color: inherit; }
+
+.ak-sticky { position: fixed; left: 1rem; right: 1rem; bottom: 1rem; z-index: 15; }
+.ak-sticky-inner { max-width: 640px; margin: 0 auto; padding: 0.55rem 0.6rem 0.55rem 1.1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: var(--ag-kraft, #e4cfae); color: var(--ag-ink, #2a1c14); border-left: 4px solid var(--ag-momiji, #b3312a); box-shadow: var(--rd-shadow, 0 18px 44px rgba(42, 28, 20, 0.18)); }
+.ak-sticky-inner span { font-size: 0.84rem; }
+.ak-sticky-inner strong { font-family: var(--rd-font-display, 'Instrument Serif', serif); font-weight: 400; font-size: 1.05rem; }
+.ak-sticky .wa-btn.primary { min-height: 40px; padding: 0.5rem 1rem; }
+
+/* ── Responsive ────────────────────────────────────────────────────── */
+@media (max-width: 1023px) {
+  .ak-hero-grid { grid-template-columns: 1fr; padding-left: clamp(3.5rem, 10.5vw, 7rem); gap: 3rem; }
+  .ak-hero-copy { padding-top: 1rem; }
+  .ak-hero-visual { margin-right: 0; margin-bottom: 3rem; }
+  .ak-hero-photo { aspect-ratio: 4 / 3; }
+  .ak-programme-grid { grid-template-columns: 1fr; gap: 2rem; }
+  .ak-programme { padding-bottom: 9rem; }
+  .ak-asset--sheet { left: auto; right: -2%; bottom: 0.5rem; width: clamp(96px, 11vw, 120px); }
+  .ak-night-grid, .ak-visit-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+  .ak-night-photo { margin-left: 0; }
+  .ak-coupons { grid-template-columns: 1fr; }
+  .ak-coupon:nth-child(even) { translate: 0; }
+  .ak-voices-label { margin-left: 0; }
+  .ak-voice--0 { grid-column: 1 / span 9; }
+  .ak-voice--1 { grid-column: 5 / span 8; padding-top: 1.5rem; }
+  .ak-voice--2 { grid-column: 2 / span 9; }
+}
+
+@media (max-width: 768px) {
+  .ak-nav-links, .ak-nav-inner > .fnb-btn { display: none; }
+  .ak-burger { display: grid; gap: 5px; width: 42px; height: 42px; place-content: center; background: none; border: 0; color: inherit; }
+  .ak-burger span { display: block; width: 18px; height: 1.5px; background: currentColor; transition: transform 0.25s ease, opacity 0.25s ease; }
+  .ak-burger--open span:first-child { transform: translateY(3.25px) rotate(45deg); }
+  .ak-burger--open span:last-child { transform: translateY(-3.25px) rotate(-45deg); }
+  .ak-mobile-menu { display: grid; padding: 0.4rem 1.5rem 1rem; gap: 0.4rem; background: var(--ag-paper, #f3e9d8); }
+  .ak-mobile-link { color: inherit; text-decoration: none; padding: 0.55rem 0; border-bottom: 1px dashed var(--ag-line, #cdb894); }
+  .ak-hero-tate { display: none; }
+  .ak-hero-grid { padding-left: 0; }
+  .ak-asset--drift { width: 62px; right: 0; top: -2rem; }
+  .ak-asset--hero-leaf { width: 120px; left: -6%; bottom: -8%; }
+  .ak-ticket { position: relative; left: 0; bottom: 0; width: auto; margin: 1.5rem 0.5rem 0; rotate: 0deg; }
+  .ak-row { grid-template-columns: 2.4rem minmax(0, 1fr); gap: 0.6rem 1rem; }
+  .ak-row-when { grid-column: 2; display: flex; gap: 0.8rem; text-align: left; white-space: normal; }
+  .ak-snap { grid-column: 2; width: 130px; justify-self: start; }
+  .ak-night-tate { display: none; }
+  .ak-moon { width: 220px; top: -6%; right: -20%; }
+  .ak-night-photo figcaption { right: 0.5rem; top: 0.5rem; }
+  .ak-gifts-head { flex-direction: column; gap: 0.8rem; }
+  .ak-stamp { align-self: flex-start; }
+  .ak-coupon, .ak-coupon:nth-child(even) { grid-template-columns: 110px minmax(0, 1fr); rotate: 0deg; }
+  .ak-hosts-inner { grid-template-columns: 1fr; gap: 0.8rem; }
+  .ak-bigquote { font-size: 8rem; top: 0; }
+  .ak-voices-label { margin-left: 0; }
+  .ak-voices-grid { grid-template-columns: 1fr; gap: 2rem; }
+  .ak-voice--0, .ak-voice--1, .ak-voice--2 { grid-column: 1 / -1; padding-top: 0; }
+  .ak-asset--cone { width: 80px; }
+  .ak-programme { padding-bottom: 6rem; }
+  .ak-asset--sheet { width: 84px; bottom: 0.5rem; }
+  /* stacked quotes run to the section's edge — park the leaf in its own band */
+  .ak-voices { padding-bottom: 6rem; }
+  .ak-asset--single { width: 72px; bottom: 0.5rem; }
+  .ak-fact { grid-template-columns: 1fr; gap: 0.4rem; }
+  .ak-sticky-inner { flex-wrap: wrap; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ak-asset, .ak-nav, .ak-btn-arrow, .ak-burger span { animation: none !important; transition: none !important; }
+  .ak-word { transform: none !important; }
+}
+
+.wa-btn { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; min-height:44px; padding:.65rem 1.1rem; border-radius:999px; font-weight:600; text-decoration:none; transition:transform .15s, box-shadow .15s; }
+.wa-btn.primary { background:#0e8257; color:white; }
+.wa-btn.ghost { background:transparent; color:currentColor; border:1px solid currentColor; }
+.wa-btn:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(37,211,102,.25); }
+.wa-btn:focus-visible { outline:2px solid #25D366; outline-offset:2px; }
+@media (prefers-reduced-motion: reduce) {
+  .wa-btn { transition:none; }
+  .wa-btn:hover { transform:none; }
+}
+
+.map-wrap { position:relative; width:100%; aspect-ratio:16/9; border-radius:var(--rd-radius, 8px); overflow:hidden; }
+iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
+
+.oh { width:100%; border-collapse:collapse; font-size:.95rem; }
+.oh tr + tr th, .oh tr + tr td { border-top:1px solid color-mix(in srgb, currentColor 12%, transparent); }
+.oh th { text-align:left; padding:.55rem 0; font-weight:600; }
+.oh td { text-align:right; padding:.55rem 0; opacity:.85; }
+
+/* ── Vanilla runtime additions ─────────────────────────────────────
+   The Nuxt site pins sections with ScrollTrigger; the static export
+   implements pinning as position:sticky inside a tall spacer. */
+.vx-pin-space { display: block; }
+
+/* Variant: clean white page ground. Seasonal kraft/red/night accents are intentionally retained. */
+
+@media (max-width: 520px) {
+  .ak-logo-mark { width: 78px; height: 44px; }
+  .ak-logo-event { font-size: 0.66rem; padding-left: 0.5rem; }
+}
+
+
+/* ── Client refinement: simplified brand + cleaner white cards ───── */
+.ak-logo { gap: 0.9rem; flex: 0 0 auto; }
+.ak-logo-crop {
+  position: relative;
+  display: block;
+  width: 191px;
+  height: 70px;
+  overflow: hidden;
+  flex: 0 0 auto;
+  background: #fff;
+}
+.ak-logo-mark {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  max-width: none;
+  left: -14px;
+  top: -105px;
+  object-fit: cover;
+  object-position: center;
+  mix-blend-mode: multiply;
+}
+.ak-logo-event { padding-left: 0.85rem; }
+
+/* Keep kraft/brown as an event-date device; the 2025 memory cards stay white. */
+.ak-coupon {
+  background: #fff;
+  border: 1px solid var(--ag-line, #ded8cf);
+  box-shadow: 0 10px 28px rgba(42, 28, 20, 0.08);
+}
+.ak-coupon-stub { border-right-color: var(--ag-line, #ded8cf); }
+
+/* Match the established maple red accent used elsewhere in the event identity. */
+.ak-visit-copy h2 em { color: var(--ag-momiji, #b3312a); }
+
+.ak-footer-inner { justify-content: space-between; }
+.ak-footer-contact { display: flex; align-items: center; gap: 0.65rem; color: var(--ag-mute, #74594a); }
+.ak-footer-contact a { color: inherit; text-decoration: none; }
+.ak-footer-contact a:hover { color: var(--ag-momiji, #b3312a); }
+
+@media (max-width: 520px) {
+  .ak-logo-crop { width: 155px; height: 57px; }
+  .ak-logo-mark { width: 180px; height: 180px; left: -12px; top: -86px; }
+  .ak-logo-event { font-size: 0.64rem; padding-left: 0.6rem; }
+  .ak-footer-contact { width: 100%; flex-wrap: wrap; }
+}
+
+
+/* ── Client refinement v2: explicit visible overrides ─────────────── */
+/* Wordmark-only header treatment. The official square logo is cropped so the
+   pine/tree symbol is outside the visible window; the MORI KOHI wordmark gets
+   substantially more horizontal and vertical room. */
+.ak-nav-inner { padding-top: 0.8rem; padding-bottom: 0.8rem; }
+.ak-logo { gap: 0; flex: 0 0 auto; }
+.ak-logo-crop {
+  width: 250px;
+  height: 82px;
+  overflow: hidden;
+  background: #fff;
+}
+.ak-logo-mark {
+  width: 300px;
+  height: 300px;
+  left: -23px;
+  top: -143px;
+  max-width: none;
+  object-fit: cover;
+  object-position: center;
+  mix-blend-mode: multiply;
+}
+.ak-logo-event { display: none !important; }
+
+/* Memory cards intentionally have no kraft/brown fill. Kraft is reserved for
+   the hero date ticket and the fixed date strip. */
+.ak-coupon,
+.ak-coupon:nth-child(even) {
+  background: transparent !important;
+  border: 1px solid #e2ded7;
+  box-shadow: none;
+}
+.ak-coupon-body { background: #fff; }
+.ak-coupon-stub { background: #fff; border-right: 1px solid #e2ded7; }
+
+/* Festival-home location accent. */
+.ak-visit-copy h2 em { color: var(--ag-momiji, #b3312a) !important; }
+
+/* Footer contains utility/contact information only. */
+.ak-footer-brand,
+.ak-footer > .ak-footer-inner > p { display: none !important; }
+
+@media (max-width: 900px) {
+  .ak-logo-crop { width: 210px; height: 70px; }
+  .ak-logo-mark { width: 255px; height: 255px; left: -20px; top: -122px; }
+}
+@media (max-width: 520px) {
+  .ak-nav-inner { padding-top: 0.65rem; padding-bottom: 0.65rem; }
+  .ak-logo-crop { width: 175px; height: 58px; }
+  .ak-logo-mark { width: 212px; height: 212px; left: -17px; top: -101px; }
+}
+
+@media (max-width: 640px) {
+  .ak-row-body h3 .ak-row-jp { margin-left: 0.35rem; font-size: 0.76rem; }
+}
+
+
+/* ── Hero rebalance v4 ───────────────────────────────────────────── */
+/* With the brand now living in the hero, the nav is intentionally balanced:
+   an empty left track, centred section links, and the CTA pinned right. */
+.ak-nav-inner {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1.5rem;
+}
+.ak-nav-links {
+  grid-column: 2;
+  justify-self: center;
+}
+.ak-nav-inner > .fnb-btn {
+  grid-column: 3;
+  justify-self: end;
+}
+.ak-burger { grid-column: 3; justify-self: end; }
+
+/* Mori Kohi identity belongs to the hero rather than the navigation. */
+.ak-hero-brand {
+  display: inline-block;
+  width: fit-content;
+  margin: 0 0 clamp(1.2rem, 2vw, 1.8rem);
+  text-decoration: none;
+}
+.ak-hero-logo-crop {
+  position: relative;
+  display: block;
+  width: clamp(205px, 21vw, 285px);
+  height: clamp(72px, 7.5vw, 98px);
+  overflow: hidden;
+  background: #fff;
+}
+.ak-hero-logo-mark {
+  position: absolute;
+  display: block;
+  width: clamp(248px, 25.5vw, 345px);
+  height: clamp(248px, 25.5vw, 345px);
+  max-width: none;
+  left: clamp(-27px, -2vw, -18px);
+  top: clamp(-164px, -12vw, -118px);
+  object-fit: cover;
+  object-position: center;
+  mix-blend-mode: multiply;
+}
+
+/* The Japanese event title becomes a quiet editorial divider instead of a
+   competing headline. */
+.ak-hero-grid {
+  padding-left: 0;
+  grid-template-columns: minmax(0, 1.03fr) auto minmax(0, 0.97fr);
+  column-gap: clamp(1.5rem, 3.2vw, 3.4rem);
+  row-gap: 2rem;
+}
+.ak-hero-copy { grid-column: 1; }
+.ak-hero-tate {
+  position: static;
+  grid-column: 2;
+  align-self: start;
+  justify-self: center;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  margin-top: clamp(9rem, 18vw, 14rem);
+  font-family: var(--ag-font-jp, 'Shippori Mincho', serif);
+  font-weight: 700;
+  font-size: clamp(2.15rem, 3.4vw, 3.35rem);
+  line-height: 1;
+  letter-spacing: 0.08em;
+  color: var(--ag-momiji, #b3312a);
+  opacity: 1;
+  z-index: 2;
+}
+.ak-hero-visual { grid-column: 3; }
+
+/* Aki / Matsuri remain dominant, but read as one lock-up. */
+.ak-h1 {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  line-height: 0.78;
+  margin-bottom: clamp(1.7rem, 3vw, 2.4rem);
+}
+.ak-h1 .ak-wmask { display: block; }
+
+/* Remove the decorative leaf that previously occupied the title divider, and
+   make the remaining red leaf supportive rather than dominant. */
+.ak-asset--drift { display: none !important; }
+.ak-asset--hero-leaf {
+  width: clamp(125px, 16vw, 205px);
+  left: -10%;
+  bottom: 11%;
+}
+
+@media (max-width: 900px) {
+  .ak-nav-inner { display: flex; justify-content: flex-end; }
+  .ak-nav-links, .ak-nav-inner > .fnb-btn { display: none; }
+  .ak-hero-grid {
+    grid-template-columns: 1fr;
+    padding-left: 0;
+  }
+  .ak-hero-copy, .ak-hero-visual { grid-column: 1; }
+  .ak-hero-tate {
+    grid-column: 1;
+    position: absolute;
+    right: 0.25rem;
+    top: 8.5rem;
+    margin: 0;
+    font-size: clamp(1.8rem, 7vw, 2.5rem);
+  }
+  .ak-hero-logo-crop { width: 210px; height: 72px; }
+  .ak-hero-logo-mark { width: 255px; height: 255px; left: -20px; top: -122px; }
+}
+
+@media (max-width: 520px) {
+  .ak-hero-tate { right: 0; top: 7rem; font-size: 1.8rem; }
+  .ak-hero-logo-crop { width: 185px; height: 64px; }
+  .ak-hero-logo-mark { width: 225px; height: 225px; left: -18px; top: -107px; }
+}
+
+
+/* ── Hero / CTA refinement v5 ─────────────────────────────────── */
+body:not(.ak-after-hero) .ak-nav-inner > .fnb-btn { opacity: 0; transform: translateY(-8px); pointer-events: none; }
+body.ak-after-hero .ak-nav-inner > .fnb-btn { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.ak-nav-inner > .fnb-btn { transition: opacity 0.28s ease, transform 0.28s ease; }
+.ak-sticky { pointer-events: none; }
+body.ak-after-hero .ak-sticky { pointer-events: auto; }
+.ak-hero-grid { grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr); column-gap: clamp(2rem, 4vw, 4rem); }
+.ak-hero-copy { max-width: 34rem; padding-right: clamp(3rem, 8vw, 6rem); }
+.ak-hero-tate { position: absolute; left: clamp(39%, 43.5vw, 47%); top: clamp(12.8rem, 17vw, 16.8rem); transform: translateX(-50%); margin: 0; font-size: clamp(1.7rem, 2.4vw, 2.45rem); line-height: 0.96; letter-spacing: 0.04em; color: var(--ag-momiji, #b3312a); z-index: 2; justify-self: initial; align-self: initial; }
+.ak-h1 { margin-bottom: clamp(1.45rem, 2.4vw, 2rem); }
+.ak-row-body h3 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3rem 0.55rem; }
+.ak-row-body h3 .ak-row-jp { margin-left: 0; }
+@media (max-width: 900px) { body:not(.ak-after-hero) .ak-nav-inner > .fnb-btn { display: none !important; } .ak-hero-copy { max-width: none; padding-right: 0; } .ak-hero-tate { right: 0.25rem; left: auto; top: 8.25rem; transform: none; font-size: clamp(1.65rem, 7vw, 2.3rem); } }
+@media (max-width: 520px) { .ak-hero-tate { right: 0; top: 7rem; font-size: 1.7rem; } }
+
+
+/* ── Hero grid repair v7 ──────────────────────────────────────────
+   Explicit three-column layout prevents the visual from creating an
+   implicit grid column and collapsing the copy. */
+.ak-hero-grid {
+  grid-template-columns: minmax(0, 1.04fr) clamp(2.6rem, 4.6vw, 4.4rem) minmax(0, 0.96fr) !important;
+  column-gap: clamp(1.5rem, 2.8vw, 3rem) !important;
+  align-items: start;
+}
+.ak-hero-copy {
+  grid-column: 1 !important;
+  min-width: 0;
+  max-width: none;
+  padding-right: 0 !important;
+}
+.ak-hero-tate {
+  grid-column: 2 !important;
+  position: static !important;
+  align-self: center;
+  justify-self: center;
+  transform: none !important;
+  margin: clamp(8rem, 14vw, 11.5rem) 0 0 !important;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  font-size: clamp(1.7rem, 2.15vw, 2.2rem) !important;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: var(--ag-momiji, #b3312a) !important;
+  z-index: 2;
+}
+.ak-hero-visual {
+  grid-column: 3 !important;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .ak-hero-grid {
+    grid-template-columns: 1fr !important;
+    column-gap: 0 !important;
+  }
+  .ak-hero-copy,
+  .ak-hero-visual {
+    grid-column: 1 !important;
+  }
+  .ak-hero-tate {
+    grid-column: 1 !important;
+    position: absolute !important;
+    right: 0.35rem;
+    left: auto;
+    top: 8.25rem;
+    margin: 0 !important;
+    font-size: clamp(1.55rem, 6vw, 2rem) !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .ak-hero-tate {
+    right: 0;
+    top: 7rem;
+    font-size: 1.55rem !important;
+  }
+}
+
+
+/* ── Hero whitespace tightening v8 ─────────────────────────────── */
+.ak-hero {
+  padding-top: clamp(0.5rem, 1.5vw, 1.25rem) !important;
+}
+.ak-hero-copy {
+  padding-top: 0 !important;
+}
+.ak-hero-brand {
+  margin-bottom: clamp(0.8rem, 1.4vw, 1.2rem) !important;
+}
+.ak-hero-visual {
+  margin-top: 0 !important;
+}
+.ak-hero-tate {
+  margin-top: clamp(6rem, 10vw, 8.5rem) !important;
+}
+@media (max-width: 900px) {
+  .ak-hero { padding-top: 0.5rem !important; }
+  .ak-hero-copy { padding-top: 0 !important; }
+}
+
+
+/* ── CTA visibility fix v9 ─────────────────────────────────────── */
+/* Both duplicate CTAs are genuinely absent on the initial hero view.
+   They only appear after JS marks the document as having passed the hero. */
+.ak-sticky {
+  opacity: 0 !important;
+  transform: translateY(calc(100% + 2rem)) !important;
+  visibility: hidden;
+  pointer-events: none !important;
+  transition: opacity 0.32s ease, transform 0.4s ease, visibility 0s linear 0.4s;
+}
+body.ak-after-hero .ak-sticky {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  visibility: visible;
+  pointer-events: auto !important;
+  transition: opacity 0.32s ease, transform 0.4s ease, visibility 0s linear 0s;
+}
+body:not(.ak-after-hero) .ak-nav-inner > .fnb-btn {
+  opacity: 0 !important;
+  visibility: hidden;
+  pointer-events: none !important;
+}
+body.ak-after-hero .ak-nav-inner > .fnb-btn {
+  opacity: 1 !important;
+  visibility: visible;
+  pointer-events: auto !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ak-sticky,
+  .ak-nav-inner > .fnb-btn { transition: none !important; }
+}
+
+
+/* ── Opening composition + CTA handoff v10 ───────────────────────
+   The hero keeps breathing room, but the negative space is anchored by a
+   quiet metadata rail and a deliberate title/image alignment. */
+.ak-hero {
+  padding-top: clamp(0.8rem, 1.8vw, 1.5rem) !important;
+  padding-bottom: clamp(3rem, 5.5vw, 4.75rem) !important;
+}
+.ak-hero-grid {
+  grid-template-columns: minmax(25rem, 0.98fr) clamp(2.4rem, 4vw, 3.7rem) minmax(0, 1.02fr) !important;
+  column-gap: clamp(1.6rem, 2.8vw, 3rem) !important;
+  align-items: start !important;
+}
+.ak-hero-copy {
+  padding-top: 0 !important;
+  align-self: start;
+}
+.ak-hero-brand {
+  margin-bottom: clamp(0.85rem, 1.3vw, 1.1rem) !important;
+}
+.ak-hero-meta {
+  display: grid;
+  grid-template-columns: max-content minmax(2rem, 1fr) max-content;
+  align-items: center;
+  gap: 0.85rem;
+  width: min(100%, 34rem);
+  margin: 0 0 clamp(1.25rem, 2vw, 1.7rem);
+  color: var(--ag-mute, #74594a);
+  font-size: 0.69rem;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+.ak-hero-meta i {
+  display: block;
+  height: 1px;
+  background: color-mix(in srgb, var(--ag-momiji, #b3312a) 42%, transparent);
+}
+.ak-h1 {
+  margin-bottom: clamp(1.25rem, 2vw, 1.75rem) !important;
+}
+.ak-hero-sub {
+  max-width: 38ch;
+}
+.ak-hero-tate {
+  margin-top: clamp(9rem, 12vw, 11rem) !important;
+  font-size: clamp(1.55rem, 1.9vw, 2rem) !important;
+  color: var(--ag-momiji, #b3312a) !important;
+}
+.ak-hero-visual {
+  margin-top: clamp(0.4rem, 1vw, 0.9rem) !important;
+}
+
+/* Duplicate CTAs do not exist visually until the opening hero has passed. */
+.ak-sticky,
+.ak-nav-inner > .fnb-btn {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+.ak-sticky {
+  transform: translateY(calc(100% + 2rem)) !important;
+}
+body.ak-after-hero .ak-sticky {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  transform: translateY(0) !important;
+}
+body.ak-after-hero .ak-nav-inner > .fnb-btn {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  transform: translateY(0) !important;
+}
+
+@media (max-width: 1100px) and (min-width: 901px) {
+  .ak-hero-grid {
+    grid-template-columns: minmax(21rem, 0.95fr) 2.5rem minmax(0, 1.05fr) !important;
+  }
+}
+@media (max-width: 900px) {
+  .ak-hero-grid { grid-template-columns: 1fr !important; }
+  .ak-hero-meta { width: min(100%, 31rem); }
+  .ak-hero-tate { margin-top: 0 !important; }
+  .ak-nav-inner > .fnb-btn { display: none !important; }
+}
+@media (max-width: 520px) {
+  .ak-hero-meta {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+  }
+  .ak-hero-meta i { width: 3.5rem; }
+}
+
+
+/* ── Vertical Japanese title placement v11 ───────────────────────
+   The previous version left too much empty space above 秋祭り.
+   Keep the divider column, but anchor the title near the top of the hero. */
+.ak-hero-tate {
+  margin-top: clamp(1.75rem, 3.2vw, 3.25rem) !important;
+  align-self: start !important;
+}
+/* v10 metadata rail was added for the wrong whitespace problem. */
+.ak-hero-meta { display: none !important; }
+@media (max-width: 900px) {
+  .ak-hero-tate { margin-top: 0 !important; }
+}
+
+
+/* ── Content simplification v15 ───────────────────────────────── */
+/* The header is navigation-only; the fixed date CTA is the sole persistent action. */
+.ak-nav-inner > .fnb-btn { display: none !important; }
+
+/* With the setting/testimonial bands removed, keep the memories → venue handoff crisp. */
+.ak-gifts { padding-bottom: clamp(3rem, 6vw, 5rem); }
+.ak-visit { padding-top: clamp(3.5rem, 7vw, 6rem); }
+
+
+/* Footer cleanup v16 */
+.ak-footer { border-top: 0 !important; }
+
+
+/* Venue bookend divider v18 */
+.ak-visit { border-bottom: 1px dashed var(--ag-line, #cdb894); }
+
+
+/* ── Hero leaf return v19 ─────────────────────────────────────── */
+.ak-asset--drift {
+  display: block !important;
+  width: clamp(82px, 9vw, 122px);
+  right: clamp(-0.3rem, -0.8vw, -0.1rem);
+  top: clamp(8rem, 15vw, 10.75rem);
+  rotate: 18deg;
+  opacity: 0.95;
+  z-index: 1;
+}
+@media (max-width: 900px) { .ak-asset--drift { width: 72px; right: 0; top: 8.2rem; } }
+@media (max-width: 520px) { .ak-asset--drift { width: 62px; top: 7.6rem; } }
+
+
+/* ── Hero leaf behind tate v20 ────────────────────────────────── */
+.ak-asset--drift {
+  display: block !important;
+  position: absolute;
+  left: calc(50% - 3.25rem);
+  top: clamp(1.8rem, 5vw, 3.4rem);
+  right: auto;
+  width: clamp(90px, 10vw, 128px);
+  rotate: 12deg;
+  opacity: 0.82;
+  z-index: 1;
+}
+.ak-hero-tate { z-index: 2; }
+@media (max-width: 900px) { .ak-asset--drift { display: none !important; } }
+
+
+/* ── Remove returned hero leaf v21 ─────────────────────────────── */
+.ak-asset--drift { display: none !important; }
