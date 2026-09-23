@@ -152,4 +152,12 @@
     reveal("#visit", ".ak-visit-grid > *", { stagger: 0.12, y: 22, dur: 0.65, ease: "power2.out", start: 0.82 });
   }
 
+  const track = document.getElementById("gallery-carousel");
+    if (track) {
+      const clone = track.cloneNode(true);
+      clone.removeAttribute("id");          // Prevents duplicate ID in HTML
+      clone.setAttribute("aria-hidden", "true"); // Hides duplicate from screen readers
+      track.parentNode.appendChild(clone);
+    }
+
 })();
