@@ -153,11 +153,109 @@
   }
 
   const track = document.getElementById("gallery-carousel");
-    if (track) {
-      const clone = track.cloneNode(true);
-      clone.removeAttribute("id");          // Prevents duplicate ID in HTML
-      clone.setAttribute("aria-hidden", "true"); // Hides duplicate from screen readers
-      track.parentNode.appendChild(clone);
+
+  if (track) {
+    // Clean up in case this module is executed again.
+    track
+      .querySelectorAll("[data-carousel-clone]")
+      .forEach((el) => el.remove());
+
+    const originals = Array.from(track.children);
+    const originalCount = originals.length;
+
+    // These images are continuously moving toward the viewport,
+    // so browser lazy-loading causes visible decode/loading jank.
+    const originalImages = originals.flatMap((card) =>
+      Array.from(card.querySelectorAll("img"))
+    );
+
+    originalImages.forEach((img) => {
+      img.loading = "eager";
+      img.decoding = "async";
+    });
+
+    // Duplicate the cards INSIDE the same flex track.
+    originals.forEach((card) => {
+      const clone = card.cloneNode(true);
+
+      clone.dataset.carouselClone = "true";
+      clone.setAttribute("aria-hidden", "true");
+
+      clone
+        .querySelectorAll("a, button, input, select, textarea, [tabindex]")
+        .forEach((el) => {
+          el.setAttribute("tabindex", "-1");
+        });
+
+      track.appendChild(clone);
+    });
+
+    function measureCarousel() {
+      const firstOriginal = track.children[0];
+      const firstClone = track.children[originalCount];
+
+      if (!firstOriginal || !firstClone) return;
+
+      // Exact distance between item 1 and its duplicate.
+      // This automatically includes card widths, gaps and responsive sizing.
+      const distance =
+        firstClone.getBoundingClientRect().left -
+        firstOriginal.getBoundingClientRect().left;
+
+      track.style.setProperty(
+        "--ak-gallery-offset",
+        `${-distance}px`
+      );
+
+      // Constant physical speed rather than arbitrary animation duration.
+      // Smaller number = slower.
+      const pixelsPerSecond = 38;
+
+      track.style.setProperty(
+        "--ak-gallery-duration",
+        `${distance / pixelsPerSecond}s`
+      );
     }
 
+    function imageReady(img) {
+      const decode = () => {
+        if (typeof img.decode === "function") {
+          return img.decode().catch(() => {});
+        }
+
+        return Promise.resolve();
+      };
+
+      if (img.complete) {
+        return decode();
+      }
+
+      return new Promise((resolve) => {
+        img.addEventListener("load", resolve, { once: true });
+        img.addEventListener("error", resolve, { once: true });
+      }).then(decode);
+    }
+
+    // Don't start moving until the original product imagery is ready.
+    Promise.all(originalImages.map(imageReady)).finally(() => {
+      requestAnimationFrame(() => {
+        measureCarousel();
+        track.classList.add("is-running");
+      });
+    });
+
+    let resizeTimer;
+
+    window.addEventListener(
+      "resize",
+      () => {
+        clearTimeout(resizeTimer);
+
+        resizeTimer = setTimeout(() => {
+          measureCarousel();
+        }, 100);
+      },
+      { passive: true }
+    );
+  }
 })();

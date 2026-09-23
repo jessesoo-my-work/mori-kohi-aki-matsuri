@@ -1282,16 +1282,46 @@ body.ak-after-hero .ak-sticky {
   position: relative;
   width: 100%;
   overflow: hidden;
-  display: flex;
-}
-.ak-carousel-container:hover .ak-gallery-carousel {
-  animation-play-state: paused;
 }
 .ak-gallery-carousel {
   display: flex;
+  flex: none;
+  width: max-content;
+  min-width: max-content;
+
   gap: 1.5rem;
   padding: 0.5rem 0.75em 1.5rem;
-  animation: spin 30s infinite linear;
+
+  /* Don't move until JS has measured the exact loop distance. */
+  animation: none;
+
+  /* Keep the moving strip on its own composited layer. */
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+}
+.ak-gallery-carousel.is-running {
+  animation:
+    ak-gallery-loop
+    var(--ak-gallery-duration, 110s)
+    linear
+    infinite;
+}
+.ak-carousel-container:hover .ak-gallery-carousel.is-running {
+  animation-play-state: paused;
+}
+
+@keyframes ak-gallery-loop {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(
+      var(--ak-gallery-offset),
+      0,
+      0
+    );
+  }
 }
 .ak-carousel-container::-webkit-scrollbar {
   display: none;
@@ -1395,9 +1425,18 @@ body.ak-after-hero .ak-sticky {
     flex: 0 0 82vw;
   }
 }
-@keyframes spin {
+/* @keyframes spin {
   from {translate: 0;}
   to {translate: -100%;}
+} */
+@keyframes gallery-marquee {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 /* ── Events Section: List matching example.png ───────────────────── */
