@@ -1235,6 +1235,7 @@ body.ak-after-hero .ak-sticky {
 }
 
 /* ── Gallery: Carousel styling ──────────────────────────────────── */
+.ak-gallery-bg { position: relative; overflow: hidden; background: var(--ag-panel, #f7f4ee); }
 .ak-gallery {
   position: relative;
   max-width: calc(var(--ak-band, 1180px) + var(--ak-gutter, 1.5rem) * 2);
@@ -1280,10 +1281,7 @@ body.ak-after-hero .ak-sticky {
 .ak-carousel-container {
   position: relative;
   width: 100%;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
   display: flex;
 }
 .ak-gallery-carousel {
@@ -1297,8 +1295,6 @@ body.ak-after-hero .ak-sticky {
 }
 .ak-gallery-card {
   flex: 0 0 clamp(280px, 31vw, 360px);
-  scroll-snap-align: start;
-  scroll-snap-stop: normal;
   display: flex;
   flex-direction: column;
   background: #ffffff;
@@ -1317,7 +1313,7 @@ body.ak-after-hero .ak-sticky {
   position: relative;
   aspect-ratio: 4 / 3;
   overflow: hidden;
-  background: var(--ag-panel, #f7f4ee);
+  background: var(--ag-kraft, #e4cfae);
 }
 .ak-gallery-thumb img {
   width: 100%;
