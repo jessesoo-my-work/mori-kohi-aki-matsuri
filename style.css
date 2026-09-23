@@ -1284,6 +1284,9 @@ body.ak-after-hero .ak-sticky {
   overflow: hidden;
   display: flex;
 }
+.ak-carousel-container:hover .ak-gallery-carousel {
+  animation-play-state: paused;
+}
 .ak-gallery-carousel {
   display: flex;
   gap: 1.5rem;
@@ -1303,6 +1306,7 @@ body.ak-after-hero .ak-sticky {
   border-radius: var(--rd-radius, 4px);
   overflow: hidden;
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  cursor: pointer;
 }
 .ak-gallery-card:hover {
   transform: translateY(-4px);
