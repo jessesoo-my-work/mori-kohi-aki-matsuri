@@ -153,8 +153,9 @@
   }
 
   const track = document.getElementById("gallery-carousel");
+  const container = document.querySelector(".ak-carousel-container");
 
-  if (track) {
+  if (track && container) {
     // Clean up in case this module is executed again.
     track
       .querySelectorAll("[data-carousel-clone]")
@@ -190,6 +191,18 @@
       track.appendChild(clone);
     });
 
+    let distance = 0;
+    const pixelsPerSecond = 38;
+    let currentX = 0;
+    let lastTime = null;
+    let isHovered = false;
+    let isPointerDown = false;
+    let isDragging = false;
+    let startPointerX = 0;
+    let dragStartX = 0;
+    let hasDragged = false;
+    const DRAG_THRESHOLD = 6;
+
     function measureCarousel() {
       const firstOriginal = track.children[0];
       const firstClone = track.children[originalCount];
@@ -198,23 +211,39 @@
 
       // Exact distance between item 1 and its duplicate.
       // This automatically includes card widths, gaps and responsive sizing.
-      const distance =
+      distance =
         firstClone.getBoundingClientRect().left -
         firstOriginal.getBoundingClientRect().left;
+    }
 
-      track.style.setProperty(
-        "--ak-gallery-offset",
-        `${-distance}px`
-      );
+    function render() {
+      track.style.transform = `translate3d(${currentX}px, 0, 0)`;
+    }
 
-      // Constant physical speed rather than arbitrary animation duration.
-      // Smaller number = slower.
-      const pixelsPerSecond = 38;
+    // Keep currentX always within (-distance, 0] for a seamless loop in both directions
+    function wrap() {
+      if (distance <= 0) return;
+      while (currentX <= -distance) {
+        currentX += distance;
+      }
+      while (currentX > 0) {
+        currentX -= distance;
+      }
+    }
 
-      track.style.setProperty(
-        "--ak-gallery-duration",
-        `${distance / pixelsPerSecond}s`
-      );
+    function tick(now) {
+      if (!lastTime) lastTime = now;
+      const dt = (now - lastTime) / 1000;
+      lastTime = now;
+
+      // Auto-scroll when not dragging, not hovered, and reduced motion is off
+      if (!isDragging && !isHovered && !reduced && distance > 0) {
+        currentX -= pixelsPerSecond * dt;
+        wrap();
+        render();
+      }
+
+      requestAnimationFrame(tick);
     }
 
     function imageReady(img) {
@@ -240,7 +269,8 @@
     Promise.all(originalImages.map(imageReady)).finally(() => {
       requestAnimationFrame(() => {
         measureCarousel();
-        track.classList.add("is-running");
+        render();
+        requestAnimationFrame(tick);
       });
     });
 
@@ -253,9 +283,109 @@
 
         resizeTimer = setTimeout(() => {
           measureCarousel();
+          wrap();
+          render();
         }, 100);
       },
       { passive: true }
     );
+
+    // Pause on hover
+    container.addEventListener("mouseenter", () => {
+      isHovered = true;
+    });
+
+    container.addEventListener("mouseleave", () => {
+      isHovered = false;
+      lastTime = performance.now();
+    });
+
+    // Pointer-based manual dragging (supports both mouse and touch)
+    container.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0 && e.pointerType === "mouse") return;
+
+      isPointerDown = true;
+      isDragging = false;
+      hasDragged = false;
+      startPointerX = e.clientX;
+      dragStartX = currentX;
+
+      // Do NOT set pointer capture here on pointerdown.
+      // Immediate capture on container blocks pointerup/click from reaching child <a> links.
+    });
+
+    container.addEventListener("pointermove", (e) => {
+      if (!isPointerDown) return;
+      const deltaX = e.clientX - startPointerX;
+
+      // Only transition to dragging once threshold is crossed
+      if (!isDragging) {
+        if (Math.abs(deltaX) > DRAG_THRESHOLD) {
+          isDragging = true;
+          hasDragged = true;
+          container.classList.add("is-dragging");
+
+          if (typeof container.setPointerCapture === "function") {
+            try {
+              container.setPointerCapture(e.pointerId);
+            } catch (_) {}
+          }
+        }
+      }
+
+      if (isDragging) {
+        currentX = dragStartX + deltaX;
+        wrap();
+        render();
+      }
+    });
+
+    function endDrag(e) {
+      if (!isPointerDown) return;
+      isPointerDown = false;
+      lastTime = performance.now();
+
+      if (isDragging) {
+        isDragging = false;
+        container.classList.remove("is-dragging");
+
+        if (e && typeof container.releasePointerCapture === "function") {
+          try {
+            if (container.hasPointerCapture(e.pointerId)) {
+              container.releasePointerCapture(e.pointerId);
+            }
+          } catch (_) {}
+        }
+
+        // Keep hasDragged = true for a brief tick so any pending click event from the drag is blocked
+        setTimeout(() => {
+          hasDragged = false;
+        }, 50);
+      } else {
+        // Pure click, not a drag!
+        hasDragged = false;
+      }
+    }
+
+    container.addEventListener("pointerup", endDrag);
+    container.addEventListener("pointercancel", endDrag);
+
+    // Prevent accidental link clicking if user dragged
+    container.addEventListener(
+      "click",
+      (e) => {
+        if (hasDragged) {
+          e.preventDefault();
+          e.stopPropagation();
+          hasDragged = false;
+        }
+      },
+      true
+    );
+
+    // Prevent native image and link ghost drag
+    track.querySelectorAll("img, a").forEach((el) => {
+      el.addEventListener("dragstart", (e) => e.preventDefault());
+    });
   }
 })();
