@@ -1282,8 +1282,19 @@ body.ak-after-hero .ak-sticky {
   position: relative;
   width: 100%;
   overflow: hidden;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: pan-y;
+}
+.ak-carousel-container.is-dragging {
+  cursor: grabbing;
+}
+.ak-carousel-container.is-dragging * {
+  cursor: grabbing !important;
 }
 .ak-gallery-carousel {
+  position: relative;
   display: flex;
   flex: none;
   width: max-content;
@@ -1292,36 +1303,12 @@ body.ak-after-hero .ak-sticky {
   gap: 1.5rem;
   padding: 0.5rem 0.75em 1.5rem;
 
-  /* Don't move until JS has measured the exact loop distance. */
+  /* Driven smoothly by JS requestAnimationFrame loop with drag support */
   animation: none;
 
   /* Keep the moving strip on its own composited layer. */
   will-change: transform;
   transform: translate3d(0, 0, 0);
-}
-.ak-gallery-carousel.is-running {
-  animation:
-    ak-gallery-loop
-    var(--ak-gallery-duration, 110s)
-    linear
-    infinite;
-}
-.ak-carousel-container:hover .ak-gallery-carousel.is-running {
-  animation-play-state: paused;
-}
-
-@keyframes ak-gallery-loop {
-  from {
-    transform: translate3d(0, 0, 0);
-  }
-
-  to {
-    transform: translate3d(
-      var(--ak-gallery-offset),
-      0,
-      0
-    );
-  }
 }
 .ak-carousel-container::-webkit-scrollbar {
   display: none;
@@ -1336,6 +1323,12 @@ body.ak-after-hero .ak-sticky {
   border-radius: var(--rd-radius, 4px);
   overflow: hidden;
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.ak-gallery-card a {
+  text-decoration: none;
+  cursor: pointer;
+}
+.ak-gallery-card a * {
   cursor: pointer;
 }
 .ak-gallery-card:hover {
@@ -1379,7 +1372,7 @@ body.ak-after-hero .ak-sticky {
   flex-direction: column;
   padding: 1.2rem 1.3rem 1.3rem;
   gap: 0.45rem;
-  flex: 1;
+  /* flex: 1; */
 }
 .ak-gallery-info h3 {
   margin: 0;
